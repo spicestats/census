@@ -1,0 +1,13 @@
+.Rproj.user/**
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+data/*.rds
+data/**
+output/**
+.github/**
+.github
+
+MaikeW.github.io/**
+MaikeW.github.io

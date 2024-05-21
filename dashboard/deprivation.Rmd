@@ -1,0 +1,45 @@
+---
+title: "SIMD deprivation"
+---
+  
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+```
+
+```{r prep_data}
+
+library(highcharter)
+charts_deprivation <- readRDS("data/charts_deprivation.rds")
+regions <- names(charts_deprivation[[1]][[1]])
+
+```
+
+```{r, results='asis'}
+
+# add content by looping through regions
+# sidebar text is in dashboard/_sidebar_text
+# charts are in dashboard/_layouts
+
+sidebar <- paste0("# Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/deprivation_text.Rmd"))
+
+layout = lapply(seq_along(regions), function(x) {
+  x <- regions[x]
+  region <- stringr::str_replace(x, ' and ', ' & ')
+  paste0("# ", region, "\n", 
+         knitr::knit_expand('dashboard/_layouts/deprivation_layout.Rmd'))
+})
+
+sidebar <- knitr::knit_child(text = unlist(sidebar), quiet = TRUE)
+layout = knitr::knit_child(text = unlist(layout), quiet = TRUE)
+cat(sidebar, layout, sep = '\n')
+
+```

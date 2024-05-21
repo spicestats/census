@@ -1,0 +1,22 @@
+#### **SIMD data**
+
+SIMD is the Scottish Government's [Scottish Index of Multiple Deprivation](https://www.gov.scot/collections/scottish-index-of-multiple-deprivation-2020/), a measure which identifies local areas where multiple deprivation is concentrated. The latest SIMD was published in 2020. The next SIMD update is expected in 2026.
+
+The charts show the area deprivation profile of each constituency. Constituencies are made up of small areas with populations of 500-1,000 household residents called "Data Zones", which are all ranked across Scotland from most (rank 1) to least deprived (rank 6,976). 
+
+SIMD is based on a range of indicators in seven domains: Income, Employment, Health, Education, Housing, Crime, and Access to Services (= rurality).
+
+- [SIMD overall](./deprivation.html)
+- [Income domain](./simd_inc.html)
+- [Employment domain](./simd_emp.html)
+- [Health domain](./simd_hea.html)
+- [Education domain](./simd_edu.html)
+- [Housing domain](./simd_hou.html)
+- [Crime domain](./simd_cri.html)
+- [Access domain](./simd_acc.html)
+
+Indicator definitions can be found in the [SIMD 2020 technical notes](https://www.gov.scot/publications/simd-2020-technical-notes/).
+
+The **local share** is the share of areas (Data Zones) within the constituency that are among the most deprived 20% areas in Scotland. 
+
+A local share of 0% means none of the Data Zones in this constituency are among the most deprived 20% across Scotland. A local share of 0-20% (in green) means that deprivation is less concentrated in this constituency compared to Scotland overall. A local share of more than 20% (in purple) means that deprivation is more concentrated in this constituency compared to Scotland overall. A local share of 100% means all Data Zones in this constituency are among the most deprived 20% in Scotland.

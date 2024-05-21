@@ -1,0 +1,133 @@
+---
+title: "`r params$region`"
+params:
+  region: Central Scotland
+---
+  
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+```
+
+```{r prep_data}
+
+library(highcharter)
+x <- params$region
+
+```
+
+```{r housing}
+
+# Housing
+
+charts_housing <- readRDS("data/charts_housing.rds")
+
+# add layout and charts by looping through regions
+title1 <- "# Housing"
+sidebar1 <- paste0("## Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/housing_text.Rmd"))
+layout1 <- knitr::knit_expand('dashboard/_layouts/housing_layout.Rmd')
+
+title1 = knitr::knit_child(text = unlist(title1), quiet = TRUE)
+sidebar1 <- knitr::knit_child(text = unlist(sidebar1), quiet = TRUE)
+layout1 = knitr::knit_child(text = unlist(layout1), quiet = TRUE)
+
+```
+
+```{r pay}
+
+# Pay
+
+charts_n <- readRDS("data/charts_earnings.rds")[["regions"]][["nominal"]]
+charts_r <- readRDS("data/charts_earnings.rds")[["regions"]][["real"]]
+charts_l <- readRDS("data/charts_earnings.rds")[["regions"]][["latest"]]
+
+# add layout and charts by looping through regions
+title2 <- "# Pay {data-orientation=columns}"
+sidebar2 <- paste0("## Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/earnings_text.Rmd"))
+layout2 <- knitr::knit_expand('dashboard/_layouts/earnings_layout.Rmd')
+
+title2 = knitr::knit_child(text = unlist(title2), quiet = TRUE)
+sidebar2 <- knitr::knit_child(text = unlist(sidebar2), quiet = TRUE)
+layout2 = knitr::knit_child(text = unlist(layout2), quiet = TRUE)
+
+```
+
+```{r labourmarket}
+
+# Labour market
+
+charts_r <- readRDS("data/charts_labourmarket.rds")[["regions"]]
+charts_c <- readRDS("data/charts_labourmarket.rds")[["constituencies"]]
+charts_unemp <- readRDS("data/charts_labourmarket.rds")[["regions_unemp"]]
+charts_emp <- readRDS("data/charts_labourmarket.rds")[["regions_emp"]]
+charts_inact <- readRDS("data/charts_labourmarket.rds")[["regions_inact"]]
+
+# add layout and charts by looping through regions
+title3 <- "# Labour market"
+sidebar3 <- paste0("## Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/labourmarket_text.Rmd"))
+layout3 <- knitr::knit_expand('dashboard/_layouts/labourmarket_layout.Rmd')
+
+title3 = knitr::knit_child(text = unlist(title3), quiet = TRUE)
+sidebar3 <- knitr::knit_child(text = unlist(sidebar3), quiet = TRUE)
+layout3 = knitr::knit_child(text = unlist(layout3), quiet = TRUE)
+
+```
+
+```{r poverty}
+
+# Housing
+
+charts_poverty <- readRDS("data/charts_poverty.rds")
+
+# add layout and charts by looping through regions
+title4 <- "# Poverty"
+sidebar4 <- paste0("## Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/poverty_text.Rmd"))
+layout4 <- knitr::knit_expand('dashboard/_layouts/poverty_layout.Rmd')
+
+title4 = knitr::knit_child(text = unlist(title4), quiet = TRUE)
+sidebar4 <- knitr::knit_child(text = unlist(sidebar4), quiet = TRUE)
+layout4 = knitr::knit_child(text = unlist(layout4), quiet = TRUE)
+
+```
+
+```{r deprivation}
+
+# SIMD
+
+charts_deprivation <- readRDS("data/charts_deprivation.rds")
+
+# add layout and charts by looping through regions
+title5 <- "# SIMD deprivation"
+sidebar5 <- paste0("## Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/deprivation_text.Rmd"))
+layout5 <- knitr::knit_expand('dashboard/_layouts/deprivation_layout.Rmd')
+
+title5 = knitr::knit_child(text = unlist(title5), quiet = TRUE)
+sidebar5 <- knitr::knit_child(text = unlist(sidebar5), quiet = TRUE)
+layout5 = knitr::knit_child(text = unlist(layout5), quiet = TRUE)
+
+```
+
+```{r output, results='asis'}
+
+cat(title1, sidebar1, layout1,
+    title2, sidebar2, layout2, 
+    title3, sidebar3, layout3, 
+    title4, sidebar4, layout4, 
+    title5, sidebar5, layout5, 
+    sep = '\n')
+
+```
+
+

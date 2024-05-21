@@ -1,0 +1,9 @@
+name: "SPICe statistics"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+    css: styles.css
+    navbar: 
+      - { title: "Home", icon: "ion-android-folder", href: "index.html", align: "left" }
+exclude: ["data", "R"]

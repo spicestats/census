@@ -1,0 +1,68 @@
+.navbar-inverse {
+    background-color: #500778;
+    border-color: #500778;
+}
+
+body {
+  font-family: Futura, "Source Sans Pro", Calibri, Candara, Arial, sans-serif;
+}
+
+.first-box {
+  background-color: #500778;
+}
+
+.first-box > .chart-title {
+  color: white;
+  font-weight: 600;
+}
+
+.empty-box {
+  background: none;
+  border: none;
+}
+
+.sidebar {
+  background-color: #5007780F !important; 
+}
+
+.multi_row {
+  display:flex; 
+  flex-direction:row; 
+  justify-content:space-evenly; 
+  align-items:center;
+}
+
+.const_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.deprivation_grid {
+  display: grid;
+  grid-template-areas:
+    "bar bar bar map map map"
+    "const1 const1 const2 const2 const3 const3";
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.deprivation_grid_top1 {
+  grid-area: bar;
+}
+
+.deprivation_grid_top2 {
+  grid-area: map;
+}
+
+.deprivation_grid_bottom1 {
+  grid-area: const1;
+}
+
+.deprivation_grid_bottom3 {
+  grid-area: const3;
+}
+
+.deprivation_grid_bottom2 {
+  grid-area: const2;
+}
