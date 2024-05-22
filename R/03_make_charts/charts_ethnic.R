@@ -7,8 +7,8 @@ library(sf)
 library(geojsonsf)
 library(rmapshaper)
 
-source("R/functions/f_make_charts.R")
 source("R/functions/f_get_region.R")
+source("R/functions/f_make_charts.R")
 
 ethnic <- readRDS("data/ethnic.rds")
 
@@ -45,30 +45,86 @@ local_map <- shp_SPC %>%
   geojsonsf::sf_geojson() %>% 
   jsonlite::fromJSON(simplifyVector = FALSE)
 
-ethnic_c <- ethnic %>% 
-  filter(Region == r)
+gypsy <- ethnic %>% 
+  filter(Region == r) %>% 
+  select(x, y, "White..Gypsy..Traveller") %>% 
+  rename(z = 3) %>% 
+  filter(!is.na(z)) %>% 
+  uncount(z, .id = "id") %>% 
+  # slightly move duplicate coordinates (=jitter); randomise direction
+  mutate(rand1 = sample(-10:10, n(), replace=T),
+         rand2 = sample(-10:10, n(), replace=T),
+         x = ifelse(id != 1, x + rand1, x),
+         y = ifelse(id != 1, y + rand2, y)) %>% 
+  select(x, y)
+
+polish <- ethnic %>% 
+  filter(Region == r) %>% 
+  select(x, y, "White..White.Polish") %>% 
+  rename(z = 3) %>% 
+  filter(!is.na(z)) %>% 
+  uncount(z, .id = "id") %>% 
+  # slightly move duplicate coordinates (=jitter); randomise direction
+  mutate(rand1 = sample(-10:10, n(), replace=T),
+         rand2 = sample(-10:10, n(), replace=T),
+         x = ifelse(id != 1, x + rand1, x),
+         y = ifelse(id != 1, y + rand2, y)) %>% 
+  select(x, y)
+
+asian <- ethnic %>% 
+  filter(Region == r) %>% 
+  select(x, y, "Asian..Asian.Scottish.or.Asian.British..Total") %>% 
+  rename(z = 3) %>% 
+  filter(!is.na(z))  %>% 
+  uncount(z, .id = "id") %>% 
+  # slightly move duplicate coordinates (=jitter); randomise direction
+  mutate(rand1 = sample(-10:10, n(), replace=T),
+         rand2 = sample(-10:10, n(), replace=T),
+         x = ifelse(id != 1, x + rand1, x),
+         y = ifelse(id != 1, y + rand2, y)) %>% 
+  select(x, y)
 
 
-highchart(type = "map") %>% 
+highchart(type = "map")  %>%
+  hc_add_theme(my_theme) %>% 
+  hc_add_dependency("modules/marker-clusters.js") %>% 
   hc_add_series(
     mapData = local_map,
     showInLegend = FALSE
   ) %>%
   hc_add_series(name = "Gypsy Traveller",
-                type = "mapbubble",
-                color = unname(spcols[1]),
-                data = ethnic_c %>% 
-                  select(x, y, "White..Gypsy..Traveller") %>% 
-                  rename(z = 3)) %>% 
+                type = "mappoint",
+                data = gypsy,
+                visible = TRUE) %>% 
   hc_add_series(name = "White Polish",
-                type = "mapbubble",
-                color = unname(spcols)[3],
-                data = ethnic_c  %>% 
-                  select(x, y, "White..White.Polish") %>% 
-                  rename(z = 3)) %>% 
-  hc_plotOptions(mapbubble = list(maxSize = "5%",
-                                  marker = list(fillColor = NULL))) %>% 
-  hc_mapNavigation(enabled = TRUE) %>%
-  hc_mapNavigation(enabled = TRUE) %>% 
-  hc_add_theme(my_theme)
+                type = "mappoint",
+                data = polish,
+                visible = FALSE) %>%
+  hc_add_series(name = "Asian or Asian-Scottish/-British",
+                type = "mappoint",
+                data = asian,
+                visible = FALSE) %>%
+  hc_plotOptions(
+    mappoint = list(
+      opacity = 0.5,
+      cluster = list(enabled = TRUE,
+                     #drillToCluster = TRUE, # chart freezes when zooming in too far
+                     allowOverlap = FALSE,
+                     layoutAlgorithm = list(type = "grid",
+                                            gridSize = 100),
+                     minimumClusterSize = 2,
+                     zones = list(
+                       list(from = 1, to = 50, marker = list(radius = 10)),
+                       list(from = 51, to = 300, marker = list(radius = 15)),
+                       list(from = 301, to = 1000, marker = list(radius = 20)),
+                       list(from = 1001, to = 2000, marker = list(radius = 25)),
+                       list(from = 2001, to = 1000000, marker = list(radius = 30)))
+      ),
+      marker = list(symbol = "circle",
+                    lineWidth = 1,
+                    fillColor = NULL),
+      tooltip = list(pointFormat = NULL,
+                     clusterFormat = "{point.clusterPointsAmount}")
+    )) %>% 
+  hc_mapNavigation(enabled = TRUE)
 
