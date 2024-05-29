@@ -20,7 +20,26 @@ spcols <- c(purple = "#500778",
             mustard = "#DAAA00")
 
 
-# theme ------------------------------------------------------------------------
+grey <- "#848789"
+
+# ggplot theme -----------------------------------------------------------------
+
+my_ggtheme <- function() {
+  theme_minimal() +
+    theme(text =(element_text(size = 12)),
+          plot.title = element_text(face = "bold", size = 18, family = "Century Gothic"),
+          plot.title.position = "plot",
+          plot.subtitle = element_text(size=10, face="plain", color="black"),
+          strip.text = element_text(size = 12, family = "sans", hjust = 0.5),
+          axis.line.x = element_blank(),
+          axis.title = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid = element_blank(),
+          plot.margin=unit(c(10, 7, 10, 7), "pt")) 
+}
+
+
+# hc theme ------------------------------------------------------------------------
 
 my_theme <- highcharter::hc_theme(
   
