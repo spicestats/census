@@ -3,6 +3,7 @@
 
 library(tidyverse)
 library(leaflet)
+library(sf)
 library(htmlwidgets)
 library(geojsonsf)
 library(rmapshaper)
@@ -35,7 +36,7 @@ const_map <- sf::st_read(const_sf) %>%
 
 # prep data --------------------------------------------------------------------
 
-ethnic_prepped <- ethnic %>% 
+prepped <- ethnic %>% 
   rename("White - total" = "White..Total",
          "White - Scottish" = "White..White.Scottish",
          "White - other British" = "White..Other.White.British",
@@ -62,10 +63,10 @@ ethnic_prepped <- ethnic %>%
          -"African..Other.African",
          -"Other.ethnic.groups..Total") %>% 
   # transform to long /lat
-  st_as_sf(coords = c("x", "y"), 
+  sf::st_as_sf(coords = c("x", "y"), 
            crs = 27700) %>%
   # transform to standard projection
-  st_transform(4326) %>% 
+  sf::st_transform(4326) %>% 
   pivot_longer(cols = where(is.numeric), names_to = "group", 
                names_transform = function(x) ordered(x, levels = 
                                                        c("African",                                                                                  
@@ -91,7 +92,7 @@ ethnic_prepped <- ethnic %>%
                                                          "Other"))) %>% 
   mutate(.by = group, 
          alpha = normalise(value, 0.5, 0.8),
-         size = normalise(value, 1.5, 8)) %>% 
+         size = normalise(value, 2, 20)) %>% 
   filter(!is.na(value)) %>% 
   arrange(group)
 
@@ -99,8 +100,10 @@ pal <- colorFactor(spcols, domain = NULL)
 
 # make maps --------------------------------------------------------------------
 
-ethnic_region <- lapply(regions, function(x) {
-  leaflet(data = ethnic_prepped) %>%
+maps <- lapply(regions, function(x) {
+  leaflet(data = prepped,
+          sizingPolicy = leafletSizingPolicy(defaultHeight = "100%",
+                                             defaultWidth = NULL)) %>%
     addPolygons(data = const_map %>% filter(Region == x),
                 fill = TRUE,
                 fillColor = "#E6E6E6",
@@ -114,7 +117,7 @@ ethnic_region <- lapply(regions, function(x) {
                   weight = 2,
                   bringToFront = TRUE,
                   sendToBack = TRUE)) %>%
-    addCircleMarkers(data = ethnic_prepped %>% filter(Region == x),
+    addCircleMarkers(data = prepped %>% filter(Region == x),
                      group = ~group,
                      radius = ~size,
                      stroke = FALSE, 
@@ -122,11 +125,13 @@ ethnic_region <- lapply(regions, function(x) {
                      fillOpacity = ~alpha) %>%
     htmlwidgets::prependContent(htmltools::tags$style(".leaflet-container {background: white;}")) %>%
     addLayersControl(
-      baseGroups = unique(ethnic_prepped$group),
+      baseGroups = unique(prepped$group),
       options = layersControlOptions(collapsed = FALSE)
-    )
+    ) %>% 
+    showGroup("White - Scottish") %>% 
+    hideGroup("African")
 })
 
-names(ethnic_region) <- regions
-
-saveRDS(ethnic_region, "data/ethnic_maps.rds")
+names(maps) <- regions
+saveRDS(maps, "data/ethnic_maps.rds")
+rm(list = ls())

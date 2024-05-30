@@ -1,0 +1,12 @@
+## Ethnicity  {.tabset}
+
+### Map
+```{r}
+maps_ethnic[["{{x}}"]]
+```
+
+
+### Bar chart
+```{r}
+
+```

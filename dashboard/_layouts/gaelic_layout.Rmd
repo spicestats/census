@@ -1,0 +1,12 @@
+## Gaelic and Scots {.tabset}
+
+### Map
+```{r}
+maps_gaelic[["{{x}}"]]
+```
+
+
+### Bar chart
+```{r}
+
+```
