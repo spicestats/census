@@ -22,7 +22,8 @@ ethnic <- read_csv(census_files[grepl("UV201 ", census_files)], skip = 4,
   
   left_join(oa_lookup, by = "OA2022") %>% 
   rename(x = Easting,
-         y = Northing)
+         y = Northing) %>% 
+  arrange(Region, Constituency)
 
 # gaelic -----------------------------------------------------------------------
 
@@ -35,7 +36,8 @@ gaelic <- read_csv(census_files[grepl("UV208 ", census_files)], skip = 4,
   
   left_join(oa_lookup, by = "OA2022") %>% 
   rename(x = Easting,
-         y = Northing)
+         y = Northing) %>% 
+  arrange(Region, Constituency)
 
 # scots -----------------------------------------------------------------------
 
@@ -48,7 +50,8 @@ scots <- read_csv(census_files[grepl("UV209 ", census_files)], skip = 4,
   
   left_join(oa_lookup, by = "OA2022") %>% 
   rename(x = Easting,
-         y = Northing)
+         y = Northing) %>% 
+  arrange(Region, Constituency)
 
 # save all ---------------------------------------------------------------------
 

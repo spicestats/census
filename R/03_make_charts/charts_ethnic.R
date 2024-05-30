@@ -2,29 +2,21 @@
 # load -------------------------------------------------------------------------
 
 library(tidyverse)
-library(highcharter)
-library(sf)
+library(leaflet)
+library(htmlwidgets)
 library(geojsonsf)
 library(rmapshaper)
+library(htmltools)
 
-source("R/functions/f_get_region.R")
 source("R/functions/f_make_charts.R")
+source("R/functions/f_get_region.R")
+source("R/functions/f_round2.R")
+source("R/functions/f_normalise.R")
 
 ethnic <- readRDS("data/ethnic.rds")
-
 regions <- unique(ethnic$Region)
 
-# local shares -----------------------------------------------------------------
-
-r <- "Glasgow"
-c <- ethnic %>% 
-  filter(Region == r) %>% 
-  select(Constituency) %>% 
-  distinct() %>% 
-  head(1L) %>% 
-  pull()
-
-# maps -------------------------------------------------------------------------
+# constituency map -------------------------------------------------------------
 
 # Scottish Parliamentary Constituencies (December 2022) Boundaries SC BGC
 # shapefiles from: 
@@ -33,98 +25,108 @@ c <- ethnic %>%
 const_sf <- "data/Scottish_Parliamentary_Constituencies_December_2022_Boundaries_SC_BGC_811473201121076359/SPC_DEC_2022_SC_BGC.shp"
 
 # prepare SPC boundary map from shapefile
-shp_SPC <- sf::st_read(const_sf) %>% 
+const_map <- sf::st_read(const_sf) %>% 
   mutate(Constituency = const_code_to_name(SPC22CD),
          Region = const_name_to_region(Constituency)) %>% 
   select(Region, Constituency, geometry) %>% 
   # reduce size of map by losing some detail
-  rmapshaper::ms_simplify(keep = 0.3) 
+  rmapshaper::ms_simplify(keep = 0.3) %>% 
+  sf::st_transform(4326)
 
-local_map <- shp_SPC %>% 
-  filter(Region == r) %>% 
-  geojsonsf::sf_geojson() %>% 
-  jsonlite::fromJSON(simplifyVector = FALSE)
+# prep data --------------------------------------------------------------------
 
-gypsy <- ethnic %>% 
-  filter(Region == r) %>% 
-  select(x, y, "White..Gypsy..Traveller") %>% 
-  rename(z = 3) %>% 
-  filter(!is.na(z)) %>% 
-  uncount(z, .id = "id") %>% 
-  # slightly move duplicate coordinates (=jitter); randomise direction
-  mutate(rand1 = sample(-10:10, n(), replace=T),
-         rand2 = sample(-10:10, n(), replace=T),
-         x = ifelse(id != 1, x + rand1, x),
-         y = ifelse(id != 1, y + rand2, y)) %>% 
-  select(x, y)
+ethnic_prepped <- ethnic %>% 
+  rename("White - total" = "White..Total",
+         "White - Scottish" = "White..White.Scottish",
+         "White - other British" = "White..Other.White.British",
+         "White - Irish" = "White..White.Irish",                                                                              
+         "White - Gypsy / Traveller" = "White..Gypsy..Traveller",                                                                       
+         "White - Polish" = "White..White.Polish",                                                                          
+         "White - other" = "Other.White",                                                                                     
+         "Mixed / multiple" = "Mixed.or.multiple.ethnic.group", 
+         "Asian - total" = "Asian..Asian.Scottish.or.Asian.British..Total",                                                   
+         "Asian - Pakistani" = "Asian..Asian.Scottish.or.Asian.British..Pakistani..Pakistani.Scottish.or.Pakistani.British",      
+         "Asian - Indian" = "Asian..Asian.Scottish.or.Asian.British..Indian..Indian.Scottish.or.Indian.British",               
+         "Asian - Bangladeshi" = "Asian..Asian.Scottish.or.Asian.British..Bangladeshi..Bangladeshi.Scottish.or.Bangladeshi.British",
+         "Asian - Chinese" = "Asian..Asian.Scottish.or.Asian.British..Chinese..Chinese.Scottish.or.Chinese.British",            
+         "Asian - other" = "Asian..Asian.Scottish.or.Asian.British..Other.Asian",                                             
+         "African" = "African..Total",                                                                                  
+         "Caribbean / Black - total" = "Caribbean.or.Black..Total",                                                                       
+         "Caribbean / Black - Caribbean" = "Caribbean.or.Black..Caribbean..Caribbean.Scottish.or.Caribbean.British",                          
+         "Caribbean / Black - Black" = "Caribbean.or.Black..Black..Black.Scottish.or.Black.British",                                      
+         "Caribbean / Black - other" = "Caribbean.or.Black..Other.Caribbean.or.Black",                                                    
+         "Arab"  = "Other.ethnic.groups..Arab..Arab.Scottish.or.Arab.British",                                        
+         "Other" = "Other.ethnic.groups..Other.ethnic.group") %>% 
+  select(-"All.People",
+         -"African..African..African.Scottish.or.African.British",
+         -"African..Other.African",
+         -"Other.ethnic.groups..Total") %>% 
+  # transform to long /lat
+  st_as_sf(coords = c("x", "y"), 
+           crs = 27700) %>%
+  # transform to standard projection
+  st_transform(4326) %>% 
+  pivot_longer(cols = where(is.numeric), names_to = "group", 
+               names_transform = function(x) ordered(x, levels = 
+                                                       c("African",                                                                                  
+                                                         "Asian - total",                                                   
+                                                         "Asian - Bangladeshi",
+                                                         "Asian - Chinese",            
+                                                         "Asian - Indian",               
+                                                         "Asian - Pakistani",      
+                                                         "Asian - other",                                             
+                                                         "Arab",                                        
+                                                         "Caribbean / Black - total",                                                                       
+                                                         "Caribbean / Black - Black",                                      
+                                                         "Caribbean / Black - Caribbean",                          
+                                                         "Caribbean / Black - other",                                                    
+                                                         "White - total",
+                                                         "White - Scottish",
+                                                         "White - other British",
+                                                         "White - Irish",                                                                              
+                                                         "White - Gypsy / Traveller",                                                                       
+                                                         "White - Polish",                                                                          
+                                                         "White - other",                                                                                     
+                                                         "Mixed / multiple", 
+                                                         "Other"))) %>% 
+  mutate(.by = group, 
+         alpha = normalise(value, 0.5, 0.8),
+         size = normalise(value, 1.5, 8)) %>% 
+  filter(!is.na(value)) %>% 
+  arrange(group)
 
-polish <- ethnic %>% 
-  filter(Region == r) %>% 
-  select(x, y, "White..White.Polish") %>% 
-  rename(z = 3) %>% 
-  filter(!is.na(z)) %>% 
-  uncount(z, .id = "id") %>% 
-  # slightly move duplicate coordinates (=jitter); randomise direction
-  mutate(rand1 = sample(-10:10, n(), replace=T),
-         rand2 = sample(-10:10, n(), replace=T),
-         x = ifelse(id != 1, x + rand1, x),
-         y = ifelse(id != 1, y + rand2, y)) %>% 
-  select(x, y)
+pal <- colorFactor(spcols, domain = NULL)
 
-asian <- ethnic %>% 
-  filter(Region == r) %>% 
-  select(x, y, "Asian..Asian.Scottish.or.Asian.British..Total") %>% 
-  rename(z = 3) %>% 
-  filter(!is.na(z))  %>% 
-  uncount(z, .id = "id") %>% 
-  # slightly move duplicate coordinates (=jitter); randomise direction
-  mutate(rand1 = sample(-10:10, n(), replace=T),
-         rand2 = sample(-10:10, n(), replace=T),
-         x = ifelse(id != 1, x + rand1, x),
-         y = ifelse(id != 1, y + rand2, y)) %>% 
-  select(x, y)
+# make maps --------------------------------------------------------------------
 
+ethnic_region <- lapply(regions, function(x) {
+  leaflet(data = ethnic_prepped) %>%
+    addPolygons(data = const_map %>% filter(Region == x),
+                fill = TRUE,
+                fillColor = "#E6E6E6",
+                weight = 1,
+                color = "#CCCCCC",
+                label = ~htmltools::htmlEscape(Constituency),
+                highlightOptions = highlightOptions(
+                  color = unname(spcols["mustard"]),
+                  fill = TRUE,
+                  fillColor = unname(spcols["mustard"]), 
+                  weight = 2,
+                  bringToFront = TRUE,
+                  sendToBack = TRUE)) %>%
+    addCircleMarkers(data = ethnic_prepped %>% filter(Region == x),
+                     group = ~group,
+                     radius = ~size,
+                     stroke = FALSE, 
+                     color = ~pal(group),
+                     fillOpacity = ~alpha) %>%
+    htmlwidgets::prependContent(htmltools::tags$style(".leaflet-container {background: white;}")) %>%
+    addLayersControl(
+      baseGroups = unique(ethnic_prepped$group),
+      options = layersControlOptions(collapsed = FALSE)
+    )
+})
 
-highchart(type = "map")  %>%
-  hc_add_theme(my_theme) %>% 
-  hc_add_dependency("modules/marker-clusters.js") %>% 
-  hc_add_series(
-    mapData = local_map,
-    showInLegend = FALSE
-  ) %>%
-  hc_add_series(name = "Gypsy Traveller",
-                type = "mappoint",
-                data = gypsy,
-                visible = TRUE) %>% 
-  hc_add_series(name = "White Polish",
-                type = "mappoint",
-                data = polish,
-                visible = FALSE) %>%
-  hc_add_series(name = "Asian or Asian-Scottish/-British",
-                type = "mappoint",
-                data = asian,
-                visible = FALSE) %>%
-  hc_plotOptions(
-    mappoint = list(
-      opacity = 0.5,
-      cluster = list(enabled = TRUE,
-                     #drillToCluster = TRUE, # chart freezes when zooming in too far
-                     allowOverlap = FALSE,
-                     layoutAlgorithm = list(type = "grid",
-                                            gridSize = 100),
-                     minimumClusterSize = 2,
-                     zones = list(
-                       list(from = 1, to = 50, marker = list(radius = 10)),
-                       list(from = 51, to = 300, marker = list(radius = 15)),
-                       list(from = 301, to = 1000, marker = list(radius = 20)),
-                       list(from = 1001, to = 2000, marker = list(radius = 25)),
-                       list(from = 2001, to = 1000000, marker = list(radius = 30)))
-      ),
-      marker = list(symbol = "circle",
-                    lineWidth = 1,
-                    fillColor = NULL),
-      tooltip = list(pointFormat = NULL,
-                     clusterFormat = "{point.clusterPointsAmount}")
-    )) %>% 
-  hc_mapNavigation(enabled = TRUE)
+names(ethnic_region) <- regions
 
+saveRDS(ethnic_region, "data/ethnic_maps.rds")
