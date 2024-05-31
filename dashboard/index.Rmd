@@ -97,58 +97,20 @@ flexdashboard::valueBox("West Scotland", color = spcols[8],
 
 #### **BY TOPIC**
 
-### Employment, Unemployment & Inactivity rates
+### Ethnicity
 
 ```{r}
-flexdashboard::valueBox("Labour market",
+flexdashboard::valueBox("Ethnicity",
          color = spcols[12],
          icon = "ion-android-train",
-         href = "labourmarket.html")
+         href = "ethnic.html")
 ```
 
-### Employee earnings
+### Gaelic / Scots language
 
 ```{r}
-flexdashboard::valueBox("Pay",
+flexdashboard::valueBox("Gaelic / Scots language",
          color = spcols[12],
          icon = "ion-card",
-         href = "earnings.html")
-```
-
-
-### House prices, affordability, tenure and council tax bands
-
-```{r}
-flexdashboard::valueBox("Housing",
-         color = spcols[12],
-         icon = "ion-home",
-         href = "housing.html")
-```
-
-### Poverty
-
-```{r}
-flexdashboard::valueBox("Poverty",
-         color = spcols[12],
-         icon = "ion-ios-cart",
-         href = "poverty.html")
-```
-
-### Area deprivation
-
-```{r}
-flexdashboard::valueBox("Deprivation",
-         color = spcols[12],
-         icon = "ion-ios-cart",
-         href = "deprivation.html")
-```
-
-
-### Health, disability and life expectancy
-
-```{r}
-flexdashboard::valueBox("Health",
-         color = spcols[12],
-         icon = "ion-ios-medkit",
-         href = "health.html")
+         href = "gaelic.html")
 ```
