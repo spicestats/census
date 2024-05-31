@@ -58,7 +58,7 @@ prepped <-  gaelic_prepped %>%
   pivot_longer(cols = where(is.numeric), names_to = "group") %>% 
   mutate(.by = group, 
          alpha = normalise(value, 0.5, 0.8),
-         size = normalise(value, 2, 20)) %>% 
+         size = normalise(value, 2, 15)) %>% 
   filter(value > 0) %>% 
   # jitter points so overlapping data points can be seen better
   sf::st_jitter(factor = 0.001) %>%
@@ -69,9 +69,13 @@ pal <- colorFactor(spcols, domain = NULL)
 # make maps --------------------------------------------------------------------
 
 maps <- lapply(regions, function(x) {
-  leaflet(data = prepped,
-          sizingPolicy = leafletSizingPolicy(defaultHeight = "100%",
-                                             defaultWidth = NULL)) %>%
+  
+  bounds <- const_map %>% 
+    filter(Region == x) %>% 
+    sf::st_bbox() %>% 
+    as.numeric()
+
+  leaflet(data = prepped) %>%
     addPolygons(data = const_map %>% filter(Region == x),
                 fill = TRUE,
                 fillColor = "#E6E6E6",
@@ -96,9 +100,12 @@ maps <- lapply(regions, function(x) {
       overlayGroups = unique(prepped$group),
       options = layersControlOptions(collapsed = FALSE)
     ) %>% 
-    hideGroup("Has Scots language skills")
+    hideGroup("Has Scots language skills") %>% 
+    fitBounds(bounds[1]+0.2, bounds[2]+0.2, bounds[3]-0.2, bounds[4]-0.2)
 })
 
 names(maps) <- regions
 saveRDS(maps, "data/gaelicscots_maps.rds")
 rm(list = ls())
+
+

@@ -61,6 +61,10 @@ flexdashboard::valueBox("Lothian", color = spcols[8], icon = "ion-stats-bars",
                         href = "lothian.html")
 ```
 
+## Col 2 - by region
+
+####  **BY REGION**
+
 ### Statistics
 
 ```{r}
@@ -148,58 +152,3 @@ flexdashboard::valueBox("Health",
          icon = "ion-ios-medkit",
          href = "health.html")
 ```
-
-## Col 3 - UK nations
-
-#### **UK COMPARISONS**
-
-### UK nations
-
-```{r}
-flexdashboard::valueBox("Labour market",
-         color = spcols[4],
-         icon = "ion-android-train")
-```
-
-### UK nations
-
-```{r}
-flexdashboard::valueBox("Pay",
-         color = spcols[4],
-         icon = "ion-card",
-         href = "earnings_nations.html")
-```
-
-### UK nations
-
-```{r}
-flexdashboard::valueBox("Housing",
-         color = spcols[4],
-         icon = "ion-home")
-```
-
-### UK nations
-
-```{r}
-flexdashboard::valueBox("Poverty",
-         color = spcols[4],
-         icon = "ion-ios-cart")
-```
-
-### UK nations
-
-```{r}
-flexdashboard::valueBox("Health",
-         color = spcols[4],
-         icon = "ion-ios-medkit")
-```
-
-
-
-
-
-
-
-
-
-
