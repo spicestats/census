@@ -13,26 +13,10 @@ source("R/functions/f_make_charts.R")
 source("R/functions/f_get_region.R")
 source("R/functions/f_round2.R")
 source("R/functions/f_normalise.R")
+source("R/functions/f_get_SP_boundaries.R")
 
 ethnic <- readRDS("data/ethnic.rds")
 regions <- unique(ethnic$Region)
-
-# constituency map -------------------------------------------------------------
-
-# Scottish Parliamentary Constituencies (December 2022) Boundaries SC BGC
-# shapefiles from: 
-# https://geoportal.statistics.gov.uk/search?q=BDY_SPC%20DEC_2022&sort=Title%7Ctitle%7Casc
-
-const_sf <- "data/Scottish_Parliamentary_Constituencies_December_2022_Boundaries_SC_BGC_811473201121076359/SPC_DEC_2022_SC_BGC.shp"
-
-# prepare SPC boundary map from shapefile
-const_map <- sf::st_read(const_sf) %>% 
-  mutate(Constituency = const_code_to_name(SPC22CD),
-         Region = const_name_to_region(Constituency)) %>% 
-  select(Region, Constituency, geometry) %>% 
-  # reduce size of map by losing some detail
-  rmapshaper::ms_simplify(keep = 0.3) %>% 
-  sf::st_transform(4326)
 
 # prep data --------------------------------------------------------------------
 
@@ -90,11 +74,11 @@ prepped <- ethnic %>%
                                                          "White - other",                                                                                     
                                                          "Mixed / multiple", 
                                                          "Other"))) %>% 
-  mutate(.by = group, 
-         alpha = normalise(value, 0.5, 0.8),
-         size = normalise(value, 2, 15)) %>% 
+  mutate(.by = c(Region, group),
+         alpha = normalise(value, 0.4, 1),
+         size = normalise(value, 2, 12)) %>% 
   filter(!is.na(value)) %>% 
-  arrange(group)
+  arrange(Region, group)
 
 pal <- colorFactor(spcols, domain = NULL)
 
@@ -136,6 +120,8 @@ maps <- lapply(regions, function(x) {
     hideGroup("African") %>% 
     fitBounds(bounds[1]+0.2, bounds[2]+0.2, bounds[3]-0.2, bounds[4]-0.2)
 })
+
+#maps[[1]]
 
 names(maps) <- regions
 saveRDS(maps, "data/ethnic_maps.rds")

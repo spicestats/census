@@ -1,0 +1,42 @@
+---
+title: "Gaelic and Scots"
+---
+  
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+```
+
+```{r prep_data}
+
+chor_gaelic <- readRDS("data/gaelicscots_chor.rds")
+
+```
+
+```{r, results='asis'}
+
+# add content by looping through regions
+# sidebar text is in dashboard/_sidebar_text
+# charts are in dashboard/_layouts
+
+sidebar <- paste0("# Sidebar {.sidebar}\n",
+                  knitr::knit_expand("dashboard/_sidebar_text/gaelic_text.Rmd"))
+
+layout <- lapply(seq_along(c("Gaelic", "Scots")), function(x) {
+  
+  paste0("# ", c("Gaelic", "Scots")[x], " language skills\n", 
+         knitr::knit_expand('dashboard/_layouts/gaelic_layout2.Rmd'))
+})
+
+sidebar <- knitr::knit_child(text = unlist(sidebar), quiet = TRUE)
+layout <- knitr::knit_child(text = unlist(layout), quiet = TRUE)
+cat(sidebar, layout, sep = '\n')
+
+```

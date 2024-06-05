@@ -1,0 +1,12 @@
+## {{x}}  {.tabset}
+
+### Map
+```{r}
+chor_gaelic[[{{x}}]]
+```
+
+
+### Bar chart
+```{r}
+
+```

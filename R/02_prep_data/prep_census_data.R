@@ -2,11 +2,13 @@
 # load -------------------------------------------------------------------------
 
 library(tidyverse)
+source("R/functions/f_get_IZ.R")
 source("R/functions/f_get_region.R")
 
 oa_lookup <- read_csv("data/OA_TO_HIGHER_AREAS.csv") %>% 
-  select(OA2022, SPC2021, Easting, Northing) %>% 
-  mutate(Constituency = const_code_to_name(SPC2021),
+  select(OA2022, DZ2011, IZ2011, SPC2021, Easting, Northing) %>% 
+  mutate(IZ = IZ_code_to_name(IZ2011),
+         Constituency = const_code_to_name(SPC2021),
          Region = const_name_to_region(Constituency))
 
 census_files <- list.files("data/Census-2022-Output-Area", full.names = TRUE)
